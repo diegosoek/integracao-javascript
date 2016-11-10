@@ -6,7 +6,7 @@
     // Developer Console, https://console.developers.google.com
     var CLIENT_ID = '336322580164-k20rep3th6cv0i6gokb04u56f3lgvqpe.apps.googleusercontent.com';
 
-    var SCOPES = ['https://www.googleapis.com/auth/gmail.readonly'];
+    var SCOPES = ['https://www.googleapis.com/auth/gmail.readonly', 'https://www.googleapis.com/auth/plus.login'];
 
     /**
      * Check if current user has authorized this application.
@@ -58,6 +58,7 @@
      */
     function loadGmailApi() {
         gapi.client.load('gmail', 'v1', listLabels);
+        gapi.client.load('plus', 'v1', loadProfile);
     }
 
     /**
@@ -72,10 +73,9 @@
 
         request.execute(function(resp) {
             var messages = resp.messages;
-            appendPre('Total mensagens:' + resp.messages.length);
-            appendPre('Snippets:');
-
             if (messages && messages.length > 0) {
+                appendPre('Total mensagens:' + messages.length);
+                appendPre('Snippets:');
                 for (i = 0; i < messages.length; i++) {
                     var message = messages[i];
                     var request = gapi.client.gmail.users.messages.get({
@@ -87,8 +87,21 @@
                     });
                 }
             } else {
-                appendPre('No Labels found.');
+                appendPre('No mensagens found.');
             }
+        });
+    }
+
+    function loadProfile() {
+        var request = gapi.client.plus.people.get({
+            'userId': 'me'
+        });
+        request.execute(function(resp) {
+            appendPre("Dados do perfil do usuário: ")
+            appendPre("Nome: " + resp.displayName);
+            appendPre("Sexo: " + resp.gender);
+            appendPre("Perfil do Google Plus: " + resp.url);
+            appendImg(resp.image.url);
         });
     }
 
@@ -102,6 +115,15 @@
         var pre = document.getElementById('output');
         var textContent = document.createTextNode(message + '\n');
         pre.appendChild(textContent);
+    }
+
+    function appendImg(url) {
+        var pre = document.getElementById('output');
+        var oImg=document.createElement("img");
+        oImg.setAttribute('src', url);
+        oImg.setAttribute('height', '100px');
+        oImg.setAttribute('width', '100px');
+        pre.appendChild(oImg);
     }
     </script>
     <script src="https://apis.google.com/js/client.js?onload=checkAuth">
